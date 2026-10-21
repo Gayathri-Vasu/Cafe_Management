@@ -1,0 +1,18 @@
+table {
+  width: 100%;
+  min-width: 960px;
+}
+
+mat-form-field {
+  min-width: 200px;
+}
+
+.cell-link {
+  color: var(--cafe-purple-700);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cell-link:hover {
+  text-decoration: underline;
+}

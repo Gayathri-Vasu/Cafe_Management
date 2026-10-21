@@ -1,0 +1,135 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>space_dashboard</mat-icon></span>
+      <div>
+        <h1>{{ greeting() }}</h1>
+        <p>Live overview of today's trading, straight from the cafe database.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      <button matButton="filled" type="button" (click)="load()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  @if (loading() && !stats()) {
+    <div class="loading-block">
+      <mat-spinner diameter="48" />
+      <p>Loading dashboard…</p>
+    </div>
+  } @else if (stats(); as s) {
+    <section class="stat-grid">
+      <article class="stat-card stat-card--purple">
+        <span class="stat-card__icon"><mat-icon>category</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Categories</div>
+          <div class="stat-card__value">{{ s.totalCategories }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--coffee">
+        <span class="stat-card__icon"><mat-icon>local_cafe</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Products</div>
+          <div class="stat-card__value">{{ s.totalProducts }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--info">
+        <span class="stat-card__icon"><mat-icon>receipt_long</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Orders</div>
+          <div class="stat-card__value">{{ s.totalOrders }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--purple">
+        <span class="stat-card__icon"><mat-icon>point_of_sale</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Bills</div>
+          <div class="stat-card__value">{{ s.totalBills }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--success">
+        <span class="stat-card__icon"><mat-icon>trending_up</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Total revenue</div>
+          <div class="stat-card__value">{{ s.totalRevenue | currency: 'INR' : 'symbol' : '1.2-2' }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--success">
+        <span class="stat-card__icon"><mat-icon>today</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Today revenue</div>
+          <div class="stat-card__value">{{ s.todayRevenue | currency: 'INR' : 'symbol' : '1.2-2' }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--warning">
+        <span class="stat-card__icon"><mat-icon>pending_actions</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Pending bills</div>
+          <div class="stat-card__value">{{ s.pendingBills }}</div>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--info">
+        <span class="stat-card__icon"><mat-icon>verified</mat-icon></span>
+        <div>
+          <div class="stat-card__label">Paid bills</div>
+          <div class="stat-card__value">{{ s.paidBills }}</div>
+        </div>
+      </article>
+    </section>
+
+    <div class="cafe-card mt-24">
+      <div class="cafe-card__body">
+        <div class="cafe-card__title">
+          <mat-icon>history</mat-icon>
+          <span>Recent orders</span>
+          <span class="flex-spacer"></span>
+          <a matButton="text" routerLink="/orders">View all</a>
+        </div>
+
+        @if (s.recentOrders.length === 0) {
+          <div class="state-block">
+            <mat-icon>receipt_long</mat-icon>
+            <h3>No orders yet</h3>
+            <p>Orders placed by staff will appear here in real time.</p>
+            <a matButton="filled" routerLink="/orders/new">
+              <mat-icon>add_shopping_cart</mat-icon>
+              Create the first order
+            </a>
+          </div>
+        } @else {
+          <div class="recent-grid">
+            @for (order of s.recentOrders; track order.id) {
+              <a class="recent-row" [routerLink]="['/orders', order.id]">
+                <div class="recent-row__main">
+                  <span class="mono recent-row__number">{{ order.orderNumber }}</span>
+                  <span class="badge" [class]="orderStatusBadge(order.status)">
+                    {{ orderStatusLabel(order.status) }}
+                  </span>
+                </div>
+                <div class="recent-row__meta">
+                  <span><mat-icon>person</mat-icon>{{ order.customerName || 'Walk-in customer' }}</span>
+                  <span><mat-icon>badge</mat-icon>{{ order.createdByName }}</span>
+                  <span><mat-icon>schedule</mat-icon>{{ order.createdAt | date: 'dd MMM, HH:mm' }}</span>
+                </div>
+                <div class="recent-row__amount money money--total">
+                  {{ order.totalAmount | currency: 'INR' : 'symbol' : '1.2-2' }}
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

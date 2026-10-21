@@ -1,0 +1,8 @@
+table {
+  width: 100%;
+  min-width: 860px;
+}
+
+mat-slide-toggle {
+  --mdc-switch-selected-track-color: var(--cafe-purple-500);
+}

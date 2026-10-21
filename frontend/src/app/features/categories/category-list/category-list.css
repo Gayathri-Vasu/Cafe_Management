@@ -1,0 +1,8 @@
+table {
+  width: 100%;
+  min-width: 620px;
+}
+
+mat-paginator {
+  margin-top: 0;
+}

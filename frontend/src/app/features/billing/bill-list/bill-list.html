@@ -1,0 +1,150 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>point_of_sale</mat-icon></span>
+      <div>
+        <h1>Billing</h1>
+        <p>Invoices generated for orders, with payment method and payment status.</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="cafe-card">
+    <div class="cafe-card__body toolbar-row">
+      <mat-form-field class="grow" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search bills</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="Bill number, order number or customer" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Payment status</mat-label>
+        <mat-select [formControl]="statusControl">
+          <mat-option [value]="''">All payments</mat-option>
+          @for (status of statuses; track status.value) {
+            <mat-option [value]="status.value">{{ status.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+
+      <span class="badge badge--purple">{{ dataSource.data.length }} shown</span>
+
+      <button matIconButton type="button" matTooltip="Reload" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table class="cafe-table" [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="billNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Bill</th>
+        <td mat-cell *matCellDef="let bill">
+          <a class="cell-link mono" [routerLink]="['/billing', bill.id]">{{ bill.billNumber }}</a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="orderNumber">
+        <th mat-header-cell *matHeaderCellDef>Order</th>
+        <td mat-cell *matCellDef="let bill">
+          <a class="cell-link mono" [routerLink]="['/orders', bill.orderId]">
+            {{ bill.orderNumber }}
+          </a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
+        <td mat-cell *matCellDef="let bill">
+          <div class="cell-title">{{ bill.customerName || 'Walk-in customer' }}</div>
+          <div class="cell-sub">Recorded by {{ bill.createdByName }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="totalAmount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Amount</th>
+        <td mat-cell *matCellDef="let bill" class="text-right">
+          <span class="money">{{ bill.totalAmount | currency: 'INR' : 'symbol' : '1.2-2' }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="paymentMethod">
+        <th mat-header-cell *matHeaderCellDef>Method</th>
+        <td mat-cell *matCellDef="let bill">
+          <span class="badge badge--coffee">{{ paymentMethodLabel(bill.paymentMethod) }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="paymentStatus">
+        <th mat-header-cell *matHeaderCellDef>Payment</th>
+        <td mat-cell *matCellDef="let bill">
+          <span class="badge" [class]="paymentStatusBadge(bill.paymentStatus)">
+            {{ paymentStatusLabel(bill.paymentStatus) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+        <td mat-cell *matCellDef="let bill">
+          <div>{{ bill.createdAt | date: 'dd MMM yyyy' }}</div>
+          <div class="cell-sub">{{ bill.createdAt | date: 'HH:mm' }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+        <td mat-cell *matCellDef="let bill" class="text-right">
+          <div class="table-actions">
+            <a matIconButton matTooltip="View invoice" [routerLink]="['/billing', bill.id]">
+              <mat-icon>visibility</mat-icon>
+            </a>
+            <button
+              matIconButton
+              type="button"
+              matTooltip="Download PDF"
+              [disabled]="downloadingId() === bill.id"
+              (click)="downloadPdf(bill)"
+            >
+              @if (downloadingId() === bill.id) {
+                <mat-spinner diameter="18" />
+              } @else {
+                <mat-icon>download</mat-icon>
+              }
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!loading() && dataSource.data.length === 0) {
+      <div class="state-block">
+        <mat-icon>point_of_sale</mat-icon>
+        <h3>No bills yet</h3>
+        <p>Generate a bill from a confirmed order and it will appear here.</p>
+        <a matButton="filled" routerLink="/orders">
+          <mat-icon>receipt_long</mat-icon>
+          Go to orders
+        </a>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="table-overlay">
+        <mat-spinner diameter="42" />
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    class="paginator-bar"
+    [pageSizeOptions]="[10, 25, 50]"
+    [pageSize]="10"
+    showFirstLastButtons
+  />
+</div>

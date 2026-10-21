@@ -1,0 +1,216 @@
+.auth-hero__footer {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.auth-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--cafe-radius-sm);
+  background: var(--cafe-danger-soft);
+  color: var(--cafe-danger);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 22px;
+  border-radius: var(--cafe-radius);
+  background: var(--cafe-cream);
+  border: 1px solid var(--cafe-border);
+}
+
+.auth-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 6px;
+  border: none;
+  border-radius: var(--cafe-radius-sm);
+  background: transparent;
+  color: var(--cafe-ink-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* The label is the part that gives way, so the tabs never paint over each other. */
+.auth-tab > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-tab mat-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.auth-tab:hover {
+  color: var(--cafe-ink);
+}
+
+.auth-tab--active {
+  background: var(--cafe-surface);
+  color: var(--cafe-espresso);
+  box-shadow: var(--cafe-shadow-sm);
+}
+
+.auth-tab--active mat-icon {
+  color: var(--cafe-caramel);
+}
+
+.auth-tab:focus-visible {
+  outline: 2px solid var(--cafe-caramel);
+  outline-offset: 2px;
+}
+
+.auth-form__note {
+  margin: 2px 0 0;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--cafe-ink-muted);
+}
+
+.auth-otp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.auth-otp__send {
+  margin-top: 4px;
+  height: 56px;
+  white-space: nowrap;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 26px 0 20px;
+  color: var(--cafe-ink-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cafe-border);
+}
+
+.auth-providers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.auth-provider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--cafe-radius-sm);
+  border: 1px solid var(--cafe-border);
+  background: var(--cafe-surface);
+  color: var(--cafe-ink);
+  font-family: inherit;
+  font-size: 0.87rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease,
+    background 0.16s ease;
+}
+
+.auth-provider:hover {
+  border-color: var(--cafe-caramel-soft);
+  background: var(--cafe-beige-soft);
+  box-shadow: var(--cafe-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.auth-provider:focus-visible {
+  outline: 2px solid var(--cafe-caramel);
+  outline-offset: 2px;
+}
+
+.auth-provider:disabled {
+  cursor: default;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.auth-provider__logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.auth-provider mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--cafe-espresso-soft);
+}
+
+.auth-providers__note {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--cafe-ink-muted);
+}
+
+.auth-submit mat-spinner {
+  --mdc-circular-progress-active-indicator-color: #ffffff;
+}
+
+.auth-provider mat-spinner {
+  --mdc-circular-progress-active-indicator-color: var(--cafe-espresso);
+}
+
+@media (max-width: 1024px) {
+  .auth-panel {
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-providers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-otp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-otp__send {
+    margin-top: 0;
+    height: 44px;
+    justify-self: start;
+  }
+}

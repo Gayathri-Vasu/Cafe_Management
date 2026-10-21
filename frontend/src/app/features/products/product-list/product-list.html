@@ -1,0 +1,144 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>local_cafe</mat-icon></span>
+      <div>
+        <h1>Products</h1>
+        <p>Manage the menu — names, prices, categories and availability.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      @if (auth.isAdmin()) {
+        <button matButton="filled" type="button" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          New product
+        </button>
+      } @else {
+        <span class="badge badge--muted">Read only for staff</span>
+      }
+    </div>
+  </header>
+
+  <div class="cafe-card">
+    <div class="cafe-card__body toolbar-row">
+      <mat-form-field class="grow" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search products</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="e.g. Cappuccino" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Category</mat-label>
+        <mat-select [formControl]="categoryControl">
+          <mat-option [value]="null">All categories</mat-option>
+          @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+
+      <span class="badge badge--purple">{{ dataSource.data.length }} shown</span>
+
+      <button matIconButton type="button" matTooltip="Clear filters" (click)="clearFilters()">
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+
+      <button matIconButton type="button" matTooltip="Reload" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table class="cafe-table" [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
+        <td mat-cell *matCellDef="let product">
+          <div class="cell-title">{{ product.name }}</div>
+          <div class="cell-sub">{{ product.description || 'No description' }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+        <td mat-cell *matCellDef="let product">
+          <span class="badge badge--coffee">{{ product.categoryName }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Price</th>
+        <td mat-cell *matCellDef="let product" class="text-right">
+          <span class="money">{{ product.price | currency: 'INR' : 'symbol' : '1.2-2' }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="availability">
+        <th mat-header-cell *matHeaderCellDef>Availability</th>
+        <td mat-cell *matCellDef="let product">
+          @if (auth.isAdmin()) {
+            <mat-slide-toggle
+              [checked]="product.availability"
+              (change)="toggleAvailability(product, $event)"
+              matTooltip="Toggle availability"
+            />
+          } @else if (product.availability) {
+            <span class="badge badge--success">Available</span>
+          } @else {
+            <span class="badge badge--danger">Unavailable</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+        <td mat-cell *matCellDef="let product" class="text-right">
+          @if (auth.isAdmin()) {
+            <div class="table-actions">
+              <button matIconButton type="button" matTooltip="Edit" (click)="openEditDialog(product)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                matIconButton
+                type="button"
+                matTooltip="Delete"
+                (click)="confirmDelete(product)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          } @else {
+            <span class="text-muted">View only</span>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!loading() && dataSource.data.length === 0) {
+      <div class="state-block">
+        <mat-icon>local_cafe</mat-icon>
+        <h3>No products found</h3>
+        <p>Try a different search, or add a new product to the menu.</p>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="table-overlay">
+        <mat-spinner diameter="42" />
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    class="paginator-bar"
+    [pageSizeOptions]="[10, 25, 50]"
+    [pageSize]="10"
+    showFirstLastButtons
+  />
+</div>

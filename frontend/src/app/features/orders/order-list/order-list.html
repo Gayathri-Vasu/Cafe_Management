@@ -1,0 +1,169 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>receipt_long</mat-icon></span>
+      <div>
+        <h1>Orders</h1>
+        <p>Every order placed at the counter, with the staff member who recorded it.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      <a matButton="filled" routerLink="/orders/new">
+        <mat-icon>add_shopping_cart</mat-icon>
+        New order
+      </a>
+    </div>
+  </header>
+
+  <div class="cafe-card">
+    <div class="cafe-card__body toolbar-row">
+      <mat-form-field class="grow" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search orders</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="Order number or customer name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Status</mat-label>
+        <mat-select [formControl]="statusControl">
+          <mat-option [value]="''">All statuses</mat-option>
+          @for (status of statuses; track status.value) {
+            <mat-option [value]="status.value">{{ status.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+
+      <span class="badge badge--purple">{{ dataSource.data.length }} shown</span>
+
+      <button matIconButton type="button" matTooltip="Reload" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table class="cafe-table" [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="orderNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Order</th>
+        <td mat-cell *matCellDef="let order">
+          <a class="cell-link mono" [routerLink]="['/orders', order.id]">{{ order.orderNumber }}</a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
+        <td mat-cell *matCellDef="let order">
+          <div class="cell-title">{{ order.customerName || 'Walk-in customer' }}</div>
+          <div class="cell-sub">{{ order.customerContact || 'No contact' }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdBy">
+        <th mat-header-cell *matHeaderCellDef>Recorded by</th>
+        <td mat-cell *matCellDef="let order">{{ order.createdByName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="items">
+        <th mat-header-cell *matHeaderCellDef class="text-center">Items</th>
+        <td mat-cell *matCellDef="let order" class="text-center">
+          <span class="badge badge--coffee">{{ order.items.length }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="totalAmount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Total</th>
+        <td mat-cell *matCellDef="let order" class="text-right">
+          <span class="money">{{ order.totalAmount | currency: 'INR' : 'symbol' : '1.2-2' }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let order">
+          <span class="badge" [class]="orderStatusBadge(order.status)">
+            {{ orderStatusLabel(order.status) }}
+          </span>
+          @if (order.billNumber) {
+            <div class="cell-sub mono">{{ order.billNumber }}</div>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+        <td mat-cell *matCellDef="let order">
+          <div>{{ order.createdAt | date: 'dd MMM yyyy' }}</div>
+          <div class="cell-sub">{{ order.createdAt | date: 'HH:mm' }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+        <td mat-cell *matCellDef="let order" class="text-right">
+          <div class="table-actions">
+            <a matIconButton matTooltip="View order" [routerLink]="['/orders', order.id]">
+              <mat-icon>visibility</mat-icon>
+            </a>
+
+            @if (canGenerateBill(order)) {
+              <button
+                matIconButton
+                type="button"
+                matTooltip="Generate bill"
+                (click)="generateBill(order)"
+              >
+                <mat-icon>point_of_sale</mat-icon>
+              </button>
+            } @else if (order.billId) {
+              <a matIconButton matTooltip="View bill" [routerLink]="['/billing', order.billId]">
+                <mat-icon>receipt</mat-icon>
+              </a>
+            }
+
+            @if (auth.isAdmin() && order.status === 'CREATED') {
+              <button
+                matIconButton
+                type="button"
+                matTooltip="Cancel order"
+                (click)="confirmCancel(order)"
+              >
+                <mat-icon>cancel</mat-icon>
+              </button>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!loading() && dataSource.data.length === 0) {
+      <div class="state-block">
+        <mat-icon>receipt_long</mat-icon>
+        <h3>No orders found</h3>
+        <p>Create an order from the counter to see it listed here.</p>
+        <a matButton="filled" routerLink="/orders/new">
+          <mat-icon>add_shopping_cart</mat-icon>
+          New order
+        </a>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="table-overlay">
+        <mat-spinner diameter="42" />
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    class="paginator-bar"
+    [pageSizeOptions]="[10, 25, 50]"
+    [pageSize]="10"
+    showFirstLastButtons
+  />
+</div>

@@ -1,0 +1,11 @@
+{
+  "name": "cafe-management-backend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node run.js",
+    "dev": "node run.js",
+    "build": "mvnw.cmd clean package -DskipTests",
+    "test": "mvnw.cmd test"
+  }
+}

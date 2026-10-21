@@ -1,0 +1,109 @@
+<mat-progress-bar
+  class="global-progress"
+  mode="indeterminate"
+  [class.global-progress--hidden]="!loading.isLoading()"
+/>
+
+<div class="shell">
+  <div
+    class="shell__scrim"
+    [class.shell__scrim--visible]="sidebarOpen()"
+    (click)="closeSidebar()"
+  ></div>
+
+  <aside class="sidebar" [class.sidebar--open]="sidebarOpen()">
+    <div class="sidebar__brand">
+      <span class="sidebar__logo"><mat-icon>restaurant</mat-icon></span>
+      <span class="sidebar__brand-text">
+        <strong>Kettle & Kitchen</strong>
+        <small>Management System</small>
+      </span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <p class="sidebar__section">Workspace</p>
+      @for (item of visibleNavItems; track item.route) {
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="nav-item--active"
+          (click)="closeSidebar()"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <span class="avatar">{{ initials }}</span>
+        <span class="sidebar__user-text">
+          <strong>{{ auth.user()?.name || 'Signed in' }}</strong>
+          <small>{{ roleLabel }}</small>
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="shell__main">
+    <header class="topbar">
+      <button
+        matIconButton
+        class="topbar__menu"
+        type="button"
+        aria-label="Toggle navigation"
+        (click)="toggleSidebar()"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <div class="topbar__heading">
+        <strong>Kettle & Kitchen</strong>
+        <small>{{ roleLabel }} workspace</small>
+      </div>
+
+      <span class="flex-spacer"></span>
+
+      @if (auth.isAdmin()) {
+        <span class="badge badge--purple topbar__role">
+          <mat-icon inline>verified_user</mat-icon> Admin access
+        </span>
+      } @else {
+        <span class="badge badge--coffee topbar__role">
+          <mat-icon inline>badge</mat-icon> Staff access
+        </span>
+      }
+
+      <button
+        matIconButton
+        type="button"
+        matTooltip="Account"
+        [matMenuTriggerFor]="accountMenu"
+        aria-label="Account menu"
+      >
+        <span class="avatar avatar--sm">{{ initials }}</span>
+      </button>
+
+      <mat-menu #accountMenu="matMenu">
+        <div class="account-menu__header">
+          <strong>{{ auth.user()?.name }}</strong>
+          <small>{{ auth.user()?.email }}</small>
+        </div>
+        <mat-divider />
+        <button mat-menu-item routerLink="/profile">
+          <mat-icon>manage_accounts</mat-icon>
+          <span>My profile</span>
+        </button>
+        <button mat-menu-item (click)="confirmLogout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+    </header>
+
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

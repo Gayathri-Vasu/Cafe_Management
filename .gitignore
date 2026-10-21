@@ -1,0 +1,6 @@
+# IDE local state (each module keeps its own .gitignore too)
+.idea/
+
+# OS noise
+.DS_Store
+Thumbs.db

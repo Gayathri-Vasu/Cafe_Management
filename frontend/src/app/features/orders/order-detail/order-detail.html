@@ -1,0 +1,154 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>receipt_long</mat-icon></span>
+      <div>
+        <h1>Order details</h1>
+        <p>Everything recorded for this order, including the price snapshot used.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      <a matButton="text" routerLink="/orders">
+        <mat-icon>arrow_back</mat-icon>
+        Back to orders
+      </a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-block">
+      <mat-spinner diameter="44" />
+      <p>Loading order…</p>
+    </div>
+  } @else if (notFound() || !order()) {
+    <div class="cafe-card">
+      <div class="state-block">
+        <mat-icon>search_off</mat-icon>
+        <h3>Order not found</h3>
+        <p>This order may have been removed or the link is incorrect.</p>
+        <a matButton="filled" routerLink="/orders">
+          <mat-icon>arrow_back</mat-icon>
+          Back to orders
+        </a>
+      </div>
+    </div>
+  } @else if (order(); as o) {
+    <div class="detail-grid">
+      <div class="cafe-card">
+        <div class="cafe-card__body">
+          <div class="cafe-card__title">
+            <mat-icon>info</mat-icon>
+            <span>Order information</span>
+            <span class="flex-spacer"></span>
+            <span class="badge" [class]="orderStatusBadge(o.status)">
+              {{ orderStatusLabel(o.status) }}
+            </span>
+          </div>
+
+          <dl class="info-list">
+            <div class="info-list__row">
+              <dt>Order number</dt>
+              <dd class="mono">{{ o.orderNumber }}</dd>
+            </div>
+            <div class="info-list__row">
+              <dt>Customer</dt>
+              <dd>{{ o.customerName || 'Walk-in customer' }}</dd>
+            </div>
+            <div class="info-list__row">
+              <dt>Phone</dt>
+              <dd>{{ o.customerContact || 'Not provided' }}</dd>
+            </div>
+            <div class="info-list__row">
+              <dt>Recorded by</dt>
+              <dd>{{ o.createdByName }}</dd>
+            </div>
+            <div class="info-list__row">
+              <dt>Date</dt>
+              <dd>{{ o.createdAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+            </div>
+            <div class="info-list__row">
+              <dt>Bill</dt>
+              <dd>
+                @if (o.billId) {
+                  <a class="cell-link mono" [routerLink]="['/billing', o.billId]">
+                    {{ o.billNumber }}
+                  </a>
+                } @else {
+                  <span class="text-muted">Not generated yet</span>
+                }
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="cafe-card">
+        <div class="cafe-card__body">
+          <div class="cafe-card__title">
+            <mat-icon>shopping_bag</mat-icon>
+            <span>Items ordered</span>
+          </div>
+
+          <div class="table-wrapper detail-items">
+            <table class="cafe-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th class="text-center">Quantity</th>
+                  <th class="text-right">Unit price</th>
+                  <th class="text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of o.items; track item.id) {
+                  <tr>
+                    <td>{{ item.productName }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right money">
+                      {{ item.unitPrice | currency: 'INR' : 'symbol' : '1.2-2' }}
+                    </td>
+                    <td class="text-right money">
+                      {{ item.subtotal | currency: 'INR' : 'symbol' : '1.2-2' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-right grand-label">Grand total</td>
+                  <td class="text-right money money--total">
+                    {{ o.totalAmount | currency: 'INR' : 'symbol' : '1.2-2' }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div class="detail-actions">
+            @if (o.status === 'CREATED' && !o.billId) {
+              <button matButton="filled" type="button" (click)="generateBill(o)">
+                <mat-icon>point_of_sale</mat-icon>
+                Generate bill
+              </button>
+            }
+
+            @if (o.billId) {
+              <a matButton="filled" [routerLink]="['/billing', o.billId]">
+                <mat-icon>receipt</mat-icon>
+                View bill
+              </a>
+            }
+
+            @if (auth.isAdmin() && o.status === 'CREATED') {
+              <button matButton="text" type="button" (click)="confirmCancel(o)">
+                <mat-icon>cancel</mat-icon>
+                Cancel order
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

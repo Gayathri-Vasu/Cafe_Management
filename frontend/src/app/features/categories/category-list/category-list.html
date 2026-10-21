@@ -1,0 +1,106 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>category</mat-icon></span>
+      <div>
+        <h1>Categories</h1>
+        <p>Group the menu into coffee, tea, snacks, desserts and cold beverages.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      @if (auth.isAdmin()) {
+        <button matButton="filled" type="button" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          New category
+        </button>
+      } @else {
+        <span class="badge badge--muted">Read only for staff</span>
+      }
+    </div>
+  </header>
+
+  <div class="cafe-card">
+    <div class="cafe-card__body toolbar-row">
+      <mat-form-field class="grow" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search categories</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="e.g. Coffee" />
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+
+      <span class="badge badge--purple">{{ dataSource.data.length }} shown</span>
+
+      <button matIconButton type="button" matTooltip="Reload" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table class="cafe-table" [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+        <td mat-cell *matCellDef="let category">
+          <div class="cell-title">{{ category.name }}</div>
+          <div class="cell-sub">{{ category.description || 'No description' }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="products">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Products</th>
+        <td mat-cell *matCellDef="let category">
+          <span class="badge badge--coffee">{{ category.productCount }} items</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+        <td mat-cell *matCellDef="let category" class="text-right">
+          @if (auth.isAdmin()) {
+            <div class="table-actions">
+              <button matIconButton type="button" matTooltip="Edit" (click)="openEditDialog(category)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                matIconButton
+                type="button"
+                matTooltip="Delete"
+                (click)="confirmDelete(category)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          } @else {
+            <span class="text-muted">View only</span>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!loading() && dataSource.data.length === 0) {
+      <div class="state-block">
+        <mat-icon>category</mat-icon>
+        <h3>No categories found</h3>
+        <p>Create your first category to start building the menu.</p>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="table-overlay">
+        <mat-spinner diameter="42" />
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    class="paginator-bar"
+    [pageSizeOptions]="[10, 25, 50]"
+    [pageSize]="10"
+    showFirstLastButtons
+  />
+</div>

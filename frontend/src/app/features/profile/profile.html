@@ -1,0 +1,348 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>manage_accounts</mat-icon></span>
+      <div>
+        <h1>My profile</h1>
+        <p>Your account details and password.</p>
+      </div>
+    </div>
+  </header>
+
+  @if (user(); as u) {
+    <div class="profile-layout">
+      <div class="profile-column">
+        <div class="cafe-card">
+          <div class="cafe-card__body">
+            <div class="profile-head">
+              <span class="profile-avatar">{{ initials() }}</span>
+              <div>
+                <h2>{{ u.name }}</h2>
+                <p>{{ u.email }}</p>
+              </div>
+            </div>
+
+            <dl class="info-list">
+              <div class="info-list__row">
+                <dt>Role</dt>
+                <dd>
+                  <span class="badge" [class]="u.role === 'ADMIN' ? 'badge--purple' : 'badge--info'">
+                    {{ u.role }}
+                  </span>
+                </dd>
+              </div>
+              <div class="info-list__row">
+                <dt>Status</dt>
+                <dd>
+                  <span
+                    class="badge"
+                    [class]="u.status === 'ACTIVE' ? 'badge--success' : 'badge--danger'"
+                  >
+                    {{ u.status === 'ACTIVE' ? 'Active' : 'Disabled' }}
+                  </span>
+                </dd>
+              </div>
+              <div class="info-list__row">
+                <dt>Account since</dt>
+                <dd>{{ u.createdAt | date: 'dd MMM yyyy' }}</dd>
+              </div>
+            </dl>
+
+            <p class="profile-note">
+              @if (u.role === 'ADMIN') {
+                You have full access to reports, the menu and staff accounts.
+              } @else {
+                You can take orders and generate bills. Menu, reports and staff accounts are managed by
+                an administrator.
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-column">
+        <div class="cafe-card">
+          <div class="cafe-card__body">
+            <div class="cafe-card__title">
+              <mat-icon>person</mat-icon>
+              <span>Personal details</span>
+            </div>
+
+            <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()" class="details-form">
+              <div class="details-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>First name</mat-label>
+                  <mat-icon matPrefix>badge</mat-icon>
+                  <input matInput formControlName="name" autocomplete="given-name" />
+                  @if (detailsForm.controls.name.touched && detailsForm.controls.name.invalid) {
+                    <mat-error>First name is required.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Last name</mat-label>
+                  <input matInput formControlName="lastName" autocomplete="family-name" />
+                  @if (
+                    detailsForm.controls.lastName.touched && detailsForm.controls.lastName.invalid
+                  ) {
+                    <mat-error>Last name must be at most 100 characters.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Gender</mat-label>
+                  <mat-select formControlName="gender">
+                    @for (option of genders; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Date of birth</mat-label>
+                  <input matInput type="date" formControlName="dateOfBirth" autocomplete="bday" />
+                  @if (age() === null) {
+                    <mat-hint>Your age is calculated from this.</mat-hint>
+                  } @else {
+                    <mat-hint>Age: {{ age() }}</mat-hint>
+                  }
+                  @if (
+                    detailsForm.controls.dateOfBirth.touched &&
+                    detailsForm.controls.dateOfBirth.invalid
+                  ) {
+                    <mat-error>Date of birth must be in the past.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Place</mat-label>
+                  <mat-icon matPrefix>location_city</mat-icon>
+                  <input matInput formControlName="place" autocomplete="address-level2" />
+                  @if (detailsForm.controls.place.touched && detailsForm.controls.place.invalid) {
+                    <mat-error>Place must be at most 150 characters.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Phone number</mat-label>
+                  <mat-icon matPrefix>call</mat-icon>
+                  <input
+                    matInput
+                    type="tel"
+                    formControlName="phone"
+                    autocomplete="tel"
+                    placeholder="+919876543210"
+                  />
+                  @if (detailsForm.controls.phone.touched && detailsForm.controls.phone.invalid) {
+                    <mat-error>Enter a valid number, e.g. +919876543210.</mat-error>
+                  } @else {
+                    <mat-hint>Include the country code.</mat-hint>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="details-grid__wide">
+                  <mat-label>Address</mat-label>
+                  <textarea
+                    matInput
+                    rows="3"
+                    formControlName="address"
+                    autocomplete="street-address"
+                  ></textarea>
+                  @if (
+                    detailsForm.controls.address.touched && detailsForm.controls.address.invalid
+                  ) {
+                    <mat-error>Address must be at most 500 characters.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <button matButton="filled" type="submit" [disabled]="savingDetails()">
+                @if (savingDetails()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  <mat-icon>save</mat-icon>
+                }
+                {{ savingDetails() ? 'Saving…' : 'Save details' }}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="cafe-card">
+          <div class="cafe-card__body">
+            <div class="cafe-card__title">
+              <mat-icon>lock_reset</mat-icon>
+              <span>Change password</span>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="submit()" class="password-form">
+              <mat-form-field appearance="outline">
+                <mat-label>Current password</mat-label>
+                <mat-icon matPrefix>lock</mat-icon>
+                <input
+                  matInput
+                  [type]="hideCurrent() ? 'password' : 'text'"
+                  formControlName="currentPassword"
+                  autocomplete="current-password"
+                />
+                <button
+                  matIconButton
+                  matSuffix
+                  type="button"
+                  [matTooltip]="hideCurrent() ? 'Show password' : 'Hide password'"
+                  (click)="hideCurrent.set(!hideCurrent())"
+                >
+                  <mat-icon>{{ hideCurrent() ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                @if (form.controls.currentPassword.touched && form.controls.currentPassword.invalid) {
+                  <mat-error>Your current password is required.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>New password</mat-label>
+                <mat-icon matPrefix>password</mat-icon>
+                <input
+                  matInput
+                  [type]="hideNew() ? 'password' : 'text'"
+                  formControlName="newPassword"
+                  autocomplete="new-password"
+                />
+                <button
+                  matIconButton
+                  matSuffix
+                  type="button"
+                  [matTooltip]="hideNew() ? 'Show password' : 'Hide password'"
+                  (click)="hideNew.set(!hideNew())"
+                >
+                  <mat-icon>{{ hideNew() ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                <mat-hint>At least 6 characters.</mat-hint>
+                @if (form.controls.newPassword.touched && form.controls.newPassword.invalid) {
+                  <mat-error>New password must be between 6 and 100 characters.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Confirm new password</mat-label>
+                <mat-icon matPrefix>password</mat-icon>
+                <input
+                  matInput
+                  [type]="hideNew() ? 'password' : 'text'"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                />
+                @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+                  <mat-error>Please confirm your new password.</mat-error>
+                }
+              </mat-form-field>
+
+              @if (form.controls.confirmPassword.touched && form.hasError('mismatch')) {
+                <div class="field-error">The two passwords do not match.</div>
+              }
+
+              <div class="password-form__actions">
+                <button matButton="filled" type="submit" [disabled]="saving()">
+                  @if (saving()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
+                  {{ saving() ? 'Updating…' : 'Update password' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="cafe-card">
+          <div class="cafe-card__body">
+            <div class="cafe-card__title">
+              <mat-icon>key</mat-icon>
+              <span>Login options</span>
+            </div>
+
+            <p class="profile-note">
+              Besides your password you can sign in with your mail ID or your staff code.
+            </p>
+
+            <dl class="info-list">
+              <div class="info-list__row">
+                <dt>Mail ID</dt>
+                <dd>{{ u.email }}</dd>
+              </div>
+              <div class="info-list__row">
+                <dt>Staff code</dt>
+                <dd>
+                  <span class="staff-code">{{ u.staffCode ?? '—' }}</span>
+                </dd>
+              </div>
+            </dl>
+
+            @if (canEditLoginIds()) {
+              @if (editingLoginIds()) {
+                <form [formGroup]="loginIdsForm" (ngSubmit)="saveLoginIds()" class="login-ids-form">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Mail ID</mat-label>
+                    <mat-icon matPrefix>mail</mat-icon>
+                    <input matInput type="email" formControlName="email" autocomplete="username" />
+                    @if (loginIdsForm.controls.email.touched && loginIdsForm.controls.email.invalid) {
+                      <mat-error>Enter a valid mail ID.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Staff code</mat-label>
+                    <mat-icon matPrefix>badge</mat-icon>
+                    <input
+                      matInput
+                      formControlName="staffCode"
+                      inputmode="numeric"
+                      maxlength="12"
+                      autocomplete="off"
+                    />
+                    <mat-hint>4 to 12 digits. Also used with the counter PIN.</mat-hint>
+                    @if (
+                      loginIdsForm.controls.staffCode.touched &&
+                      loginIdsForm.controls.staffCode.invalid
+                    ) {
+                      <mat-error>Staff code must be 4 to 12 digits.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <div class="login-ids-form__actions">
+                    <button matButton="filled" type="submit" [disabled]="savingLoginIds()">
+                      @if (savingLoginIds()) {
+                        <mat-spinner diameter="18" />
+                      } @else {
+                        <mat-icon>save</mat-icon>
+                      }
+                      {{ savingLoginIds() ? 'Saving…' : 'Save' }}
+                    </button>
+                    <button
+                      matButton="text"
+                      type="button"
+                      [disabled]="savingLoginIds()"
+                      (click)="cancelLoginIdsEdit()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <button matButton="text" type="button" (click)="startLoginIdsEdit()">
+                  <mat-icon>edit</mat-icon>
+                  Edit mail ID and staff code
+                </button>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="loading-block">
+      <mat-spinner diameter="44" />
+    </div>
+  }
+</div>

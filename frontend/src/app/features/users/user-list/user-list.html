@@ -1,0 +1,119 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__title">
+      <span class="page-header__icon"><mat-icon>group</mat-icon></span>
+      <div>
+        <h1>Staff accounts</h1>
+        <p>Create logins for your team and disable them when someone leaves.</p>
+      </div>
+    </div>
+
+    <div class="page-header__actions">
+      <button matButton="filled" type="button" (click)="openCreateDialog()">
+        <mat-icon>person_add</mat-icon>
+        New account
+      </button>
+    </div>
+  </header>
+
+  <div class="cafe-card">
+    <div class="cafe-card__body toolbar-row">
+      <mat-form-field class="grow" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search accounts</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="Name or email" />
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+
+      <span class="badge badge--purple">{{ dataSource.data.length }} accounts</span>
+
+      <button matIconButton type="button" matTooltip="Reload" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table class="cafe-table" [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="cell-title">{{ user.name }}</div>
+          @if (isSelf(user)) {
+            <div class="cell-sub">That's you</div>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let user">
+          <span class="badge" [class]="user.role === 'ADMIN' ? 'badge--purple' : 'badge--info'">
+            {{ user.role }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let user">
+          <span class="badge" [class]="user.status === 'ACTIVE' ? 'badge--success' : 'badge--danger'">
+            {{ user.status === 'ACTIVE' ? 'Active' : 'Disabled' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+        <td mat-cell *matCellDef="let user">{{ user.createdAt | date: 'dd MMM yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Account access</th>
+        <td mat-cell *matCellDef="let user" class="text-right">
+          @if (isSelf(user)) {
+            <span class="text-muted">Cannot disable your own account</span>
+          } @else {
+            <mat-slide-toggle
+              [checked]="user.status === 'ACTIVE'"
+              (change)="toggleStatus(user, $event)"
+              matTooltip="Enable or disable this login"
+            >
+              {{ user.status === 'ACTIVE' ? 'Enabled' : 'Disabled' }}
+            </mat-slide-toggle>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!loading() && dataSource.data.length === 0) {
+      <div class="state-block">
+        <mat-icon>group</mat-icon>
+        <h3>No accounts found</h3>
+        <p>Create a login for your staff so they can start taking orders.</p>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="table-overlay">
+        <mat-spinner diameter="42" />
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    class="paginator-bar"
+    [pageSizeOptions]="[10, 25, 50]"
+    [pageSize]="10"
+    showFirstLastButtons
+  />
+</div>
