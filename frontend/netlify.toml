@@ -1,0 +1,21 @@
+[build]
+  command = "npm install --legacy-peer-deps && npm run build"
+  publish = "dist/frontend/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# /api/* is forwarded to the backend BY NETLIFY, server-side.
+# The browser sees one origin, so CORS never enters the picture.
+[[redirects]]
+  from = "/api/*"
+  # REPLACE the URL below with your real Render backend URL
+  to = "https://your-backend-app.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# Angular router fallback - deep links like /orders/5 must load index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
