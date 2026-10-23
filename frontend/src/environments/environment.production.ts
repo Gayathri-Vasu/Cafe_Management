@@ -1,11 +1,11 @@
 /**
  * Production environment settings.
- * Requests are sent to the same origin under /api so a reverse proxy (nginx,
- * Apache, IIS...) can forward them to the Spring Boot backend.
+ * Requests go straight to the deployed Spring Boot backend on Render, which is a
+ * different origin from the site, so the backend must allow this origin via CORS.
  */
 export const environment = {
   production: true,
-  apiBaseUrl: '/api',
+  apiBaseUrl: 'https://cafe-management-w7d5.onrender.com/api',
   cafeName: 'Kettle & Kitchen',
   cafeAddress: '123 Coffee Street, Bengaluru, India',
   cafePhone: '+91 98765 43210',
