@@ -1,8 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
+import { environment } from '../../../environments/environment';
 import { ApiError } from '../models/api.models';
 
 const DEFAULT_MESSAGE = 'Something went wrong. Please try again.';
+
+/**
+ * Shown when the request never reached the server at all (`status === 0`).
+ * The wording lives in the environment files so the production bundle never
+ * carries the development-only "is the backend on localhost:8080?" hint.
+ */
+const UNREACHABLE_MESSAGE = environment.unreachableMessage;
 
 /**
  * Turns any thrown value (usually an {@link HttpErrorResponse}) into a message
@@ -12,7 +20,7 @@ const DEFAULT_MESSAGE = 'Something went wrong. Please try again.';
 export function extractErrorMessage(error: unknown, fallback: string = DEFAULT_MESSAGE): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) {
-      return 'Cannot reach the server. Please make sure the backend is running on http://localhost:8080.';
+      return UNREACHABLE_MESSAGE;
     }
 
     const body: unknown = error.error;

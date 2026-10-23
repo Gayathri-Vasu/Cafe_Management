@@ -9,4 +9,7 @@ export const environment = {
   cafeName: 'Kettle & Kitchen',
   cafeAddress: '123 Coffee Street, Bengaluru, India',
   cafePhone: '+91 98765 43210',
+  // Shown when a request never reaches the server. In production the usual cause
+  // is a dropped connection or a blocked CORS preflight, so do not name localhost.
+  unreachableMessage: 'Cannot reach the server. Please check your connection and try again.',
 };
