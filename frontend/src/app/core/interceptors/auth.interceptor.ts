@@ -15,7 +15,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const notification = inject(NotificationService);
 
-  const isLoginRequest = req.url.includes('/auth/login');
+  // Anchored so that the admin credential route `/api/auth/login-ids` is NOT
+  // mistaken for the sign-in route and still receives the Authorization header.
+  const isLoginRequest = req.url.endsWith('/auth/login');
   const token = auth.getToken();
 
   const authorizedRequest =
