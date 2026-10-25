@@ -74,14 +74,13 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional(readOnly = true)
     public BillResponse getById(Long id) {
-        Bill bill = findBill(id);
-        return DtoMapper.toBillResponse(bill);
+        return DtoMapper.toBillResponse(findDetailedBill(id));
     }
 
     @Override
     @Transactional
     public BillResponse updatePaymentStatus(Long id, PaymentStatus status) {
-        Bill bill = findBill(id);
+        Bill bill = findDetailedBill(id);
 
         if (bill.getPaymentStatus() == PaymentStatus.CANCELLED) {
             throw new BadRequestException("A cancelled bill cannot be modified.");
@@ -97,7 +96,7 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional
     public BillResponse cancel(Long id) {
-        Bill bill = findBill(id);
+        Bill bill = findDetailedBill(id);
 
         if (bill.getPaymentStatus() == PaymentStatus.CANCELLED) {
             throw new BadRequestException("Bill " + bill.getBillNumber() + " is already cancelled.");
@@ -115,12 +114,12 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional(readOnly = true)
     public byte[] generateInvoicePdf(Long id) {
-        Bill bill = findBill(id);
-        return pdfService.generateBillPdf(DtoMapper.toBillResponse(bill));
+        return pdfService.generateBillPdf(DtoMapper.toBillResponse(findDetailedBill(id)));
     }
 
-    private Bill findBill(Long id) {
-        return billRepository.findById(id)
+    /** Loads the bill together with its order, the order's items and the creator. */
+    private Bill findDetailedBill(Long id) {
+        return billRepository.findDetailedById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Bill", id));
     }
 

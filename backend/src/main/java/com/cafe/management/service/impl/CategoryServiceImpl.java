@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -33,9 +35,17 @@ public class CategoryServiceImpl implements CategoryService {
                 ? categoryRepository.findAll(org.springframework.data.domain.Sort.by("name").ascending())
                 : categoryRepository.findByNameContainingIgnoreCaseOrderByNameAsc(search.trim());
 
+        if (categories.isEmpty()) {
+            return List.of();
+        }
+
+        // One grouped count for every category, instead of one count query per category.
+        Map<Long, Long> productCounts = productRepository.countGroupedByCategory().stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
         return categories.stream()
                 .map(category -> DtoMapper.toCategoryDto(category,
-                        productRepository.countByCategoryId(category.getId())))
+                        productCounts.getOrDefault(category.getId(), 0L)))
                 .toList();
     }
 

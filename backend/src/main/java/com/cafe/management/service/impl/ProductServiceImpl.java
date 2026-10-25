@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductDto getById(Long id) {
-        return DtoMapper.toProductDto(findProduct(id));
+        return DtoMapper.toProductDto(findDetailedProduct(id));
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDto updateAvailability(Long id, boolean availability) {
-        Product product = findProduct(id);
+        Product product = findDetailedProduct(id);
         product.setAvailability(availability);
         return DtoMapper.toProductDto(productRepository.save(product));
     }
@@ -99,6 +99,12 @@ public class ProductServiceImpl implements ProductService {
 
     private Product findProduct(Long id) {
         return productRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Product", id));
+    }
+
+    /** Category is loaded eagerly so mapping the response needs no extra query. */
+    private Product findDetailedProduct(Long id) {
+        return productRepository.findDetailedById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Product", id));
     }
 

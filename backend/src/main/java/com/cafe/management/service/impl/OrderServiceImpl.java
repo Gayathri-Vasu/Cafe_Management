@@ -23,7 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -89,22 +92,24 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getAll(String search, OrderStatus status) {
         String normalized = (search == null || search.isBlank()) ? null : search.trim();
-        return orderRepository.search(normalized, status).stream()
-                .map(order -> DtoMapper.toOrderResponse(order, billRepository.findByOrderId(order.getId()).orElse(null)))
+        List<Order> orders = orderRepository.search(normalized, status);
+        Map<Long, Bill> billsByOrderId = billsByOrderId(orders);
+        return orders.stream()
+                .map(order -> DtoMapper.toOrderResponse(order, billsByOrderId.get(order.getId())))
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getById(Long id) {
-        Order order = findOrder(id);
+        Order order = findDetailedOrder(id);
         return DtoMapper.toOrderResponse(order, billRepository.findByOrderId(id).orElse(null));
     }
 
     @Override
     @Transactional
     public OrderResponse cancel(Long id) {
-        Order order = findOrder(id);
+        Order order = findDetailedOrder(id);
 
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new BadRequestException("Order " + order.getOrderNumber() + " is already cancelled.");
@@ -125,13 +130,38 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getRecent(int limit) {
-        return orderRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit)).stream()
-                .map(order -> DtoMapper.toOrderResponse(order, billRepository.findByOrderId(order.getId()).orElse(null)))
+        // Page of ids first, then one detail query - a fetch join combined with a
+        // Pageable would make Hibernate apply the limit in memory.
+        List<Long> ids = orderRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit)).stream()
+                .map(Order::getId)
+                .toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        List<Order> orders = orderRepository.findDetailedByIdIn(ids);
+        Map<Long, Bill> billsByOrderId = billsByOrderId(orders);
+        return orders.stream()
+                .map(order -> DtoMapper.toOrderResponse(order, billsByOrderId.get(order.getId())))
                 .toList();
     }
 
-    private Order findOrder(Long id) {
-        return orderRepository.findById(id)
+    /**
+     * Loads the bills for a batch of orders in a single statement. Reading the order id
+     * from the lazy association returns the identifier already held by the proxy, so no
+     * query is issued per bill.
+     */
+    private Map<Long, Bill> billsByOrderId(List<Order> orders) {
+        if (orders.isEmpty()) {
+            return Map.of();
+        }
+        List<Long> orderIds = orders.stream().map(Order::getId).toList();
+        return billRepository.findByOrderIdIn(orderIds).stream()
+                .collect(Collectors.toMap(bill -> bill.getOrder().getId(), Function.identity()));
+    }
+
+    private Order findDetailedOrder(Long id) {
+        return orderRepository.findDetailedById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Order", id));
     }
 
