@@ -50,17 +50,36 @@ public class JwtService {
         return parseClaims(token).getPayload().getSubject();
     }
 
-    /** True when the token belongs to the user, is well-formed and not expired. */
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    /** Reads the custom {@code role} claim (ADMIN or STAFF). */
+    public String extractRole(String token) {
+        Object role = parseClaims(token).getPayload().get("role");
+        return role == null ? null : role.toString();
+    }
+
+    /**
+     * Verifies signature and expiry, then returns the claims. Returns {@code null}
+     * when the token is missing, expired or tampered with.
+     */
+    public Claims parseValidClaims(String token) {
         try {
             Claims claims = parseClaims(token).getPayload();
-            boolean sameUser = claims.getSubject() != null
-                    && claims.getSubject().equalsIgnoreCase(userDetails.getUsername());
-            boolean notExpired = claims.getExpiration() != null && claims.getExpiration().after(new Date());
-            return sameUser && notExpired;
+            if (claims.getExpiration() == null || claims.getExpiration().before(new Date())) {
+                return null;
+            }
+            return claims;
         } catch (JwtException | IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    /** True when the token belongs to the user, is well-formed and not expired. */
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        Claims claims = parseValidClaims(token);
+        if (claims == null) {
             return false;
         }
+        return claims.getSubject() != null
+                && claims.getSubject().equalsIgnoreCase(userDetails.getUsername());
     }
 
     public long getExpirationMs() {

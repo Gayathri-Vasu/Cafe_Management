@@ -386,7 +386,9 @@ Authorization: Bearer <token>
 | Login always fails                                          | The seeded password was changed, or the account is `INACTIVE`. An admin can re-enable it under **Staff**.                       |
 | `Port 8080 was already in use`                              | Start on another port: `$env:SERVER_PORT = "8081"` (then update `environment.ts`).                                              |
 | `Port 4200 is already in use`                               | `npm start -- --port 4300`.                                                                                                     |
-| CORS error in the browser console                           | The frontend runs on an origin other than `http://localhost:*` / `http://127.0.0.1:*`. Extend `allowedOriginPatterns`.          |
+| CORS error in the browser console                           | The frontend runs on an origin other than `http://localhost:*` / `http://127.0.0.1:*`. Extend `allowedOriginPatterns`. On Render set `CORS_ALLOWED_ORIGINS` to the frontend URL (e.g. `https://your-frontend.onrender.com`). |
+| Opening the backend URL shows `401 Unauthorized`            | That was `GET /` being treated as a protected API route. It now returns `{ "status": "UP" }`. Set Render **Health Check Path** to `/health`. |
+| First page load takes several seconds on Render             | Free Render services sleep after idle time (cold start). Also keep `CORS_ALLOWED_ORIGINS` set, and point Render's health check at `/health` so the JVM stays up. |
 | 401 immediately after a while                               | The JWT expired (`JWT_EXPIRATION_MS`, default 24 h). The interceptor signs you out and sends you to the login page.             |
 | `npm install` crashes with `edgesOut`                       | Known npm 10 arborist bug — use `npm install --legacy-peer-deps`.                                                                |
 | A product cannot be deleted                                 | It is referenced by `order_items`. This is intentional: historical bills must stay intact. Disable it instead.                  |

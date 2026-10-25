@@ -24,6 +24,8 @@ class JwtServiceTest {
 
         assertThat(token).isNotBlank();
         assertThat(jwtService.extractUsername(token)).isEqualTo("admin@cafe.com");
+        assertThat(jwtService.extractRole(token)).isEqualTo("ADMIN");
+        assertThat(jwtService.parseValidClaims(token)).isNotNull();
         assertThat(jwtService.isTokenValid(token, user)).isTrue();
     }
 

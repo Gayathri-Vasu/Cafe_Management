@@ -61,4 +61,24 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Bill b WHERE b.paymentStatus = com.cafe.management.entity.PaymentStatus.PAID AND b.createdAt >= :from")
     BigDecimal calculatePaidRevenueSince(@Param("from") java.time.LocalDateTime from);
+
+    /**
+     * All dashboard counters in one MySQL round trip. Eight separate count/sum
+     * statements over the Render-to-Aiven path added several seconds of wait.
+     *
+     * <p>Returned as {@code Object[]} because native COUNT/SUM types vary
+     * ({@code BigInteger}, {@code Long}, {@code BigDecimal}).</p>
+     */
+    @Query(value = """
+            SELECT
+              (SELECT COUNT(*) FROM categories),
+              (SELECT COUNT(*) FROM products),
+              (SELECT COUNT(*) FROM orders),
+              (SELECT COUNT(*) FROM bills),
+              (SELECT COALESCE(SUM(total_amount), 0) FROM bills WHERE payment_status = 'PAID'),
+              (SELECT COALESCE(SUM(total_amount), 0) FROM bills WHERE payment_status = 'PAID' AND created_at >= :from),
+              (SELECT COUNT(*) FROM bills WHERE payment_status = 'PENDING'),
+              (SELECT COUNT(*) FROM bills WHERE payment_status = 'PAID')
+            """, nativeQuery = true)
+    List<Object[]> loadDashboardTotals(@Param("from") java.time.LocalDateTime from);
 }

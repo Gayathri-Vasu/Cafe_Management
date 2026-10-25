@@ -76,6 +76,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Render health checks and anyone opening the API hostname in a browser.
+                        .requestMatchers("/", "/health", "/error").permitAll()
                         // Sign-in routes: public by definition, since they are how a token is obtained.
                         .requestMatchers(
                                 "/api/auth/login",
